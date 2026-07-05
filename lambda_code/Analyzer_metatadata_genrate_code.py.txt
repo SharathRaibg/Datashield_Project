@@ -1,0 +1,65 @@
+import json
+import os
+import shutil
+import datetime
+
+INPUT = "/home/ec2-user/data/input"
+OUTPUT = "/home/ec2-user/data/output"
+PROCESSED = "/home/ec2-user/data/processed"
+METADATA = "/home/ec2-user/data/metadata"
+LOGS = "/home/ec2-user/data/logs"
+
+os.makedirs(OUTPUT, exist_ok=True)
+os.makedirs(PROCESSED, exist_ok=True)
+os.makedirs(METADATA, exist_ok=True)
+os.makedirs(LOGS, exist_ok=True)
+
+for file in os.listdir(INPUT):
+
+    if not file.endswith(".json"):
+        continue
+
+    filepath = os.path.join(INPUT, file)
+
+    with open(filepath, "r") as f:
+        data = json.load(f)
+
+    # Process data
+    if "email" in data:
+        data["email_status"] = "VALID"
+
+    data["status"] = "Processed"
+    data["risk"] = "LOW"
+
+    # Save processed output
+    outfile = os.path.join(OUTPUT, file)
+
+    with open(outfile, "w") as out:
+        json.dump(data, out, indent=4)
+
+    # Create metadata
+    metadata = {
+        "filename": file,
+        "processed_time": str(datetime.datetime.now()),
+        "status": data["status"],
+        "risk": data["risk"],
+        "email_status": data.get("email_status", "N/A"),
+        "file_size": os.path.getsize(outfile)
+    }
+
+    metadata_file = os.path.join(
+        METADATA,
+        file.replace(".json", "_metadata.json")
+    )
+
+    with open(metadata_file, "w") as meta:
+        json.dump(metadata, meta, indent=4)
+
+    # Move original file
+    shutil.move(filepath, os.path.join(PROCESSED, file))
+
+    # Log processing
+    with open(os.path.join(LOGS, "analyzer.log"), "a") as log:
+        log.write(f"{datetime.datetime.now()} : {file} Processed\n")
+
+print("All files processed successfully.")
