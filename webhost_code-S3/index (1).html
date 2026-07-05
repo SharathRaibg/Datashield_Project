@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Collection Form</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+<h2>Data Collection Form</h2>
+
+<form id="dataForm">
+
+<label>Name</label><br>
+<input type="text" id="name" required><br><br>
+
+<label>Email</label><br>
+<input type="email" id="email" required><br><br>
+
+<label>Phone Number</label><br>
+<input type="text" id="phone" required><br><br>
+
+<label>Department</label><br>
+<input type="text" id="department" required><br><br>
+
+<label>Address</label><br>
+<textarea id="address" rows="4"></textarea><br><br>
+
+<button type="button" onclick="submitData()">
+Submit
+</button>
+
+</form>
+
+<p id="message"></p>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,66 @@
+import json
+import boto3
+import pymysql
+
+print("===== NEW VERSION DEPLOYED =====")
+
+s3 = boto3.client("s3")
+
+def lambda_handler(event, context):
+
+    try:
+        print("===== Lambda Started =====")
+
+        bucket = event['Records'][0]['s3']['bucket']['name']
+        key = event['Records'][0]['s3']['object']['key']
+
+        response = s3.get_object(
+            Bucket=bucket,
+            Key=key
+        )
+
+        data = json.loads(response['Body'].read().decode('utf-8'))
+
+        # Read upload time from JSON created by Collector
+        upload_time = data["upload_time"]
+
+        connection = pymysql.connect(
+            host="datashield.cjoe0msqqk4v.ap-south-2.rds.amazonaws.com",
+            user="admin",
+            password="Sharath1",
+            database="datashield",
+            connect_timeout=10
+        )
+
+        cursor = connection.cursor()
+
+        sql = """
+        INSERT INTO metadata
+        (name,email,phone,department,address,upload_time)
+        VALUES(%s,%s,%s,%s,%s,%s)
+        """
+
+        cursor.execute(sql, (
+            data["name"],
+            data["email"],
+            data["phone"],
+            data["department"],
+            data["address"],
+            upload_time
+        ))
+
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        print("Inserted Successfully")
+
+        return {
+            "statusCode": 200,
+            "body": "Success"
+        }
+
+    except Exception as e:
+        print("ERROR:", str(e))
+        raise
